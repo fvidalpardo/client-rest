@@ -81,8 +81,8 @@ public class UserServiceImpl implements UserService{
         Timestamp stamp = new Timestamp(System.currentTimeMillis());
         existingUser.setLastLogin(new Date(stamp.getTime()));
         existingUser.setToken(jwtTokenUtil.generateToken(existingUser));
-        existingUser = userRepository.save(existingUser);
         BeanUtils.copyProperties(existingUser, returnValue);
+        existingUser = userRepository.save(existingUser);
         return returnValue;
 	}
 	

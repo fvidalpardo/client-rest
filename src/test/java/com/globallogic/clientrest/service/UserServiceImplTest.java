@@ -18,9 +18,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.BeanUtils;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import com.globallogic.clientrest.dto.UserDTO;
 import com.globallogic.clientrest.exceptions.UserServiceException;
 import com.globallogic.clientrest.model.Phone;
 import com.globallogic.clientrest.model.User;
@@ -132,11 +134,22 @@ public class UserServiceImplTest {
 				"greg4grfdZ6", 
 				phones
 				);
-		underTest.createUser(userRequest);
+		//creating comparison variable
+		User user = underTest.createUser(userRequest);
+		UserDTO userGetter = new UserDTO();
+		BeanUtils.copyProperties(user, userGetter);
+		
+		String token = user.getToken();
+		
+		given(userRepository.getUserByToken(token))
+		.willReturn(user);
 		//when
-		Boolean expected = userRepository.checkUserByEmail(userRequest.getEmail());
+		UserDTO expected = underTest.getUser(user.getToken());
 		//then
-		assertThat(expected).isTrue();
+		assertThat(expected)
+		.usingRecursiveComparison()
+		.ignoringFields("id", "lastLogin")
+		.isEqualTo(userGetter);
 	}
 	
 	@Test
